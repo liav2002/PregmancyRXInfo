@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PregmancyRXInfo - V1.0</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/images/PregmancyRXInfo_icon.png" type="image/png">
+</head>
+<body>
+    <div id="welcomeScreen">
+        <h1>שלום רופא יקר</h1>
+        <p>ברוכים הבאים למערכת PregmancyRXInfo. מערכת זו נועדה לספק מידע מקיף על בטיחות השימוש בתרופות במהלך הריון. תוכלו לחפש תרופות, לסנן תוצאות, ולצפות במידע מפורט על כל תרופה, כולל הצעות לתרופות בטוחות יותר ותחלופות עם אותה בטיחות.</p>
+        <button id="startSearchButton">התחל חיפוש</button>
+    </div>
+
+    <div id="searchScreen" style="display: none;">
+        <h1>מנוע חיפוש עם השלמה אוטומטית</h1>
+        <button id="returnButton">חזור</button>
+
+        <form id="searchForm">
+            <label for="searchInput">חיפוש:</label>
+            <input type="text" id="searchInput" name="searchInput" list="searchOptions" autocomplete="off">
+            <datalist id="searchOptions">
+                <!-- Options will be dynamically populated -->
+            </datalist>
+            <input type="submit" value="חפש">
+        </form>
+
+        <label for="sortCriteria">מיין לפי:</label>
+        <select id="sortCriteria" name="sortCriteria">
+            <option value="serial">סדר</option>
+            <option value="names_of_medicines">שמות תרופות</option>
+            <option value="Generic_name">שם גנרי</option>
+            <option value="pregnancy_safety">בטיחות בהריון</option>
+            <option value="sec_title">כותרת שניה</option>
+            <option value="main_title">כותרת ראשית</option>
+        </select>
+
+        <div id="searchResults">
+            <!-- Search results will be displayed here -->
+        </div>
+
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modal-title">פרטי תרופה</h2>
+                <p><strong>שם התרופה:</strong> <span id="modal-name"></span></p>
+                <p><strong>שם גנרי:</strong> <span id="modal-generic"></span></p>
+                <p><strong>בטיחות בהריון:</strong> <span id="modal-pregnancy"></span></p>
+                <p><strong>כותרת ראשית:</strong> <span id="modal-main-title"></span></p>
+                <p><strong>כותרת שניה:</strong> <span id="modal-second-title"></span></p>
+                <p><strong>הסבר:</strong> <span id="modal-explanation"></span></p>
+                <h3>הצעות טובות יותר</h3>
+                <ul id="suggestions-list"></ul>
+                <h3>תחלופות</h3>
+                <ul id="alternatives-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const searchScreen = document.getElementById('searchScreen');
+            const startSearchButton = document.getElementById('startSearchButton');
+            const returnButton = document.getElementById('returnButton');
+
+            startSearchButton.addEventListener('click', function() {
+                welcomeScreen.style.display = 'none';
+                searchScreen.style.display = 'block';
+            });
+
+            returnButton.addEventListener('click', function() {
+                searchScreen.style.display = 'none';
+                welcomeScreen.style.display = 'block';
+            });
+        });
+    </script>
+    <script src="/static/js/search.js"></script>
+</body>
+</html>

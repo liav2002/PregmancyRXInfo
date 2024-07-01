@@ -15,7 +15,7 @@ pregnancy_safety_map = {
 
 @app.route('/')
 def home():
-    return send_from_directory('html', 'index.html')
+    return send_from_directory('templates', 'index.html')
 
 @app.route('/api/get_table_data')
 def get_table_data():
