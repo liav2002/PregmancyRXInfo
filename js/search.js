@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentData = data;
             originalData = [...data]; // Store a copy of the original data
             populateAutocompleteOptions(data);
+            renderTable(data);
         })
         .catch(error => console.error('Error fetching autocomplete data:', error));
 
@@ -70,7 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tr = document.createElement('tr');
                 headers.forEach(header => {
                     const td = document.createElement('td');
-                    td.textContent = row[header];
+                    if (header === 'pregnancy_safety' && row[header] === 'N') {
+                        td.textContent = 'חסר מידע ביטחון לתרופה';
+                    } else {
+                        td.textContent = row[header];
+                    }
                     tr.appendChild(td);
                 });
                 tr.addEventListener('click', () => openModal(row, true));
@@ -112,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         modalName.textContent = row.names_of_medicines;
         modalGeneric.textContent = row.Generic_name;
-        modalPregnancy.textContent = row.pregnancy_safety;
+        modalPregnancy.textContent = row.pregnancy_safety === 'N' ? 'חסר מידע ביטחון לתרופה' : row.pregnancy_safety;
         modalMainTitle.textContent = row.main_title;
         modalSecondTitle.textContent = row.sec_title;
         modalExplanation.textContent = row.explanation_medicine;
