@@ -194,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'none';
         returnButton.style.display = 'none';
         modalHistory = [];
+        modalName.textContent = "";
     });
 
     // Close the modal when clicking outside of it
@@ -202,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = 'none';
             returnButton.style.display = 'none';
             modalHistory = [];
+            modalName.textContent = "";
         }
     });
 });
