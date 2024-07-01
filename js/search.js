@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let originalData = [];
     let modalHistory = [];
 
-    returnButton.textContent = 'Return';
+    returnButton.textContent = 'חזור';
     returnButton.style.display = 'none';
     returnButton.addEventListener('click', () => {
         if (modalHistory.length > 0) {
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const headerRow = document.createElement('tr');
             headers.forEach(header => {
                 const th = document.createElement('th');
-                th.textContent = header;
+                th.textContent = translateHeader(header);
                 headerRow.appendChild(th);
             });
             table.appendChild(headerRow);
@@ -79,8 +79,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             searchResults.appendChild(table);
         } else {
-            searchResults.textContent = 'No results found.';
+            searchResults.textContent = 'לא נמצאו תוצאות.';
         }
+    }
+
+    function translateHeader(header) {
+        const translations = {
+            'names_of_medicines': 'שמות תרופות',
+            'Generic_name': 'שם גנרי',
+            'pregnancy_safety': 'בטיחות בהריון',
+            'sec_title': 'כותרת שניה',
+            'main_title': 'כותרת ראשית',
+            'explanation_medicine': 'הסבר'
+        };
+        return translations[header] || header;
     }
 
     function openModal(row, saveHistory = true) {
@@ -129,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     a.href = '#';
-                    a.textContent = `${suggestion.names_of_medicines} (${suggestion.Generic_name}) - Click Here`;
+                    a.textContent = `${suggestion.names_of_medicines} (${suggestion.Generic_name}) - לחץ כאן`;
                     a.addEventListener('click', (e) => {
                         e.preventDefault();
                         openModal(suggestion, true);
