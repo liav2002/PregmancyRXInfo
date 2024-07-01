@@ -14,12 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalSecondTitle = document.getElementById('modal-second-title');
     const modalExplanation = document.getElementById('modal-explanation');
     const suggestionsList = document.getElementById('suggestions-list');
+    const alternativesList = document.getElementById('alternatives-list');
     const returnButton = document.createElement('button');
     let currentData = [];
     let originalData = [];
     let modalHistory = [];
 
-    returnButton.textContent = 'Return';
+    returnButton.textContent = 'חזור';
     returnButton.style.display = 'none';
     returnButton.addEventListener('click', () => {
         if (modalHistory.length > 0) {
@@ -36,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentData = data;
             originalData = [...data]; // Store a copy of the original data
             populateAutocompleteOptions(data);
+            renderTable(data);
         })
         .catch(error => console.error('Error fetching autocomplete data:', error));
 
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const headerRow = document.createElement('tr');
             headers.forEach(header => {
                 const th = document.createElement('th');
-                th.textContent = header;
+                th.textContent = translateHeader(header);
                 headerRow.appendChild(th);
             });
             table.appendChild(headerRow);
@@ -70,7 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tr = document.createElement('tr');
                 headers.forEach(header => {
                     const td = document.createElement('td');
-                    td.textContent = row[header];
+                    if (header === 'pregnancy_safety' && row[header] === 'N') {
+                        td.textContent = 'חסר מידע ביטחון לתרופה';
+                    } else {
+                        td.textContent = row[header];
+                    }
                     tr.appendChild(td);
                 });
                 tr.addEventListener('click', () => openModal(row, true));
@@ -79,8 +85,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             searchResults.appendChild(table);
         } else {
-            searchResults.textContent = 'No results found.';
+            searchResults.textContent = 'לא נמצאו תוצאות.';
         }
+    }
+
+    function translateHeader(header) {
+        const translations = {
+            'names_of_medicines': 'שמות תרופות',
+            'Generic_name': 'שם גנרי',
+            'pregnancy_safety': 'בטיחות בהריון',
+            'sec_title': 'כותרת שניה',
+            'main_title': 'כותרת ראשית',
+            'explanation_medicine': 'הסבר'
+        };
+        return translations[header] || header;
     }
 
     function openModal(row, saveHistory = true) {
@@ -97,16 +115,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalHistory.push(currentModalData);
             }
         }
-
+    
         modalName.textContent = row.names_of_medicines;
         modalGeneric.textContent = row.Generic_name;
-        modalPregnancy.textContent = row.pregnancy_safety;
+        modalPregnancy.textContent = row.pregnancy_safety === 'N' ? 'חסר מידע ביטחון לתרופה' : row.pregnancy_safety;
         modalMainTitle.textContent = row.main_title;
         modalSecondTitle.textContent = row.sec_title;
         modalExplanation.textContent = row.explanation_medicine;
-
+    
         returnButton.style.display = modalHistory.length > 0 ? 'block' : 'none';
         fetchSuggestions(row.sec_title, row.pregnancy_safety);
+        fetchAlternatives(row.sec_title, row.pregnancy_safety, row.names_of_medicines);
         modal.style.display = 'block';
     }
 
@@ -115,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Invalid parameters for suggestions:', secTitle, pregnancySafety);
             return;
         }
-
+    
         fetch('/api/suggestions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -124,12 +143,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (Array.isArray(data)) {
+                // Sort suggestions by pregnancy_safety
+                const sortedData = data.sort((a, b) => {
+                    const aValue = a.pregnancy_safety ? a.pregnancy_safety.toString().toLowerCase() : '';
+                    const bValue = b.pregnancy_safety ? b.pregnancy_safety.toString().toLowerCase() : '';
+                    if (aValue < bValue) return -1;
+                    if (aValue > bValue) return 1;
+                    return 0;
+                });
+    
                 suggestionsList.innerHTML = '';
-                data.forEach(suggestion => {
+                sortedData.forEach(suggestion => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     a.href = '#';
-                    a.textContent = `${suggestion.names_of_medicines} (${suggestion.Generic_name}) - Click Here`;
+                    a.textContent = `${suggestion.names_of_medicines} (${suggestion.Generic_name}) - בטיחות בהריון: ${suggestion.pregnancy_safety}`;
                     a.addEventListener('click', (e) => {
                         e.preventDefault();
                         openModal(suggestion, true);
@@ -143,6 +171,40 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error fetching suggestions:', error));
     }
+
+    function fetchAlternatives(secTitle, pregnancySafety, currentMedicine) {
+        if (!secTitle || !pregnancySafety || !currentMedicine) {
+            console.error('Invalid parameters for alternatives:', secTitle, pregnancySafety, currentMedicine);
+            return;
+        }
+    
+        fetch('/api/alternatives', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ secTitle, pregnancySafety, currentMedicine })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (Array.isArray(data)) {
+                alternativesList.innerHTML = '';
+                data.forEach(alternative => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = `${alternative.names_of_medicines} (${alternative.Generic_name}) - בטיחות הריון: ${alternative.pregnancy_safety}`;
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        openModal(alternative, true);
+                    });
+                    li.appendChild(a);
+                    alternativesList.appendChild(li);
+                });
+            } else {
+                console.error('Unexpected response format:', data);
+            }
+        })
+        .catch(error => console.error('Error fetching alternatives:', error));
+    }    
 
     function sortData(data, criteria) {
         if (criteria === "serial") {

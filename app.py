@@ -15,7 +15,7 @@ pregnancy_safety_map = {
 
 @app.route('/')
 def home():
-    return send_from_directory('html', 'index.html')
+    return send_from_directory('templates', 'index.html')
 
 @app.route('/api/get_table_data')
 def get_table_data():
@@ -107,7 +107,34 @@ def suggestions():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+@app.route('/api/alternatives', methods=['POST'])
+def alternatives():
+    data = request.json
+    sec_title = data.get('secTitle')
+    pregnancy_safety = data.get('pregnancySafety')
+    current_medicine = data.get('currentMedicine')
+
+    if not sec_title or not pregnancy_safety or not current_medicine:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    conn = sqlite3.connect('db/database.db')
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT names_of_medicines, Generic_name, pregnancy_safety, sec_title, main_title, explanation_medicine
+        FROM medicines
+        WHERE sec_title = ? AND pregnancy_safety = ? AND names_of_medicines != ?
+    """, (sec_title, pregnancy_safety, current_medicine))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    headers = ['names_of_medicines', 'Generic_name', 'pregnancy_safety', 'sec_title', 'main_title', 'explanation_medicine']
+    data = [dict(zip(headers, row)) for row in rows]
+
+    return jsonify(data)
+
 @app.route('/css/<path:filename>')
 def serve_css(filename):
     return send_from_directory('css', filename)
